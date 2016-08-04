@@ -1,0 +1,250 @@
+<?php
+
+function simplemeta_page_attachments(array &$attachments) {
+
+  $modulepath = drupal_get_path('module', 'simplemeta');
+  // Unconditionally attach an asset to the page.
+  $attachments ['#attached']['library'][] = 'simplemeta/simplemeta';
+  //print_r($attachments);
+
+  // Conditionally attach an asset to the page.
+  // if (!\Drupal::currentUser()->hasPermission('administer simplemeta')) {
+  //   $attachments ['#attached']['library'][] = 'core/jquery';
+  // }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function simplemeta_theme() {
+  return array(
+    'simplemeta_meta_list' => array(
+      'render element' => 'items',
+      'file' => 'simplemeta.theme.inc',
+    ),
+    'simplemeta_meta_title' => array(
+      'render element' => 'meta',
+      'file' => 'simplemeta.theme.inc',
+    ),
+    'simplemeta_meta_description' => array(
+      'render element' => 'meta',
+      'file' => 'simplemeta.theme.inc',
+    ),
+    'simplemeta_meta_keywords' => array(
+      'render element' => 'meta',
+      'file' => 'simplemeta.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Get all implemented form elements for SimpleMeta form.
+ */
+function simplemeta_get_form_elements($meta = NULL, $reset = FALSE) {
+  $info = simplemeta_get_info($reset);
+  $form = array();
+  foreach ($info as $key => $definition) {
+    $function = $definition['form'];
+    if (function_exists($function)) {
+      $form[$key] = $function($meta);
+    }
+  }
+  return $form;
+}
+
+/**
+ * Get info about meta elements from modules.
+ * 
+ * Basically, invokes all implementations of hook_simplemeta_info().
+ * Caches info in the {cache} table.
+ * 
+ * @param bool $reset
+ *   indicates whether use cache or get info from implementations directly
+ * 
+ * @return array 
+ *   info
+ */
+function simplemeta_get_info($reset = FALSE) {
+	// print "<pre>";
+	// print_r($inlinejs_assets);die();
+	// @todo  Update arroding to cache api
+  // $cid = 'simplemeta:info';
+  // if ((!$reset) && ($cache = \Drupal::cache()->get($cid,'cache'))) {
+  //   return $cache->data;
+  // }
+  //@Todo  Update according to cache api
+
+  //$info = array();
+ // foreach (module_implements_reset('simplemeta_info') as $module) {
+  	$functions = \Drupal::moduleHandler()->invokeAll('simplemeta_info');
+    //$function = $module . '_simplemeta_info';
+    //$result = $function();
+    //$info = array_merge($info, $result);
+ // }
+  //cache_set($cid, $info, 'cache');
+  return $functions;
+}
+
+/**
+ * Implements hook_simplemeta_info().
+ */
+function simplemeta_simplemeta_info() {
+  $info = array();
+  $info['title'] = array(
+    'title' => t('Title'),
+    'form' => 'simplemeta_form_title',
+    'theme' => 'simplemeta_meta_title',
+  );
+  $info['description'] = array(
+    'title' => t('Description'),
+    'form' => 'simplemeta_form_description',
+    'theme' => 'simplemeta_meta_description',
+  );
+  $info['keywords'] = array(
+    'title' => t('Keywords'),
+    'form' => 'simplemeta_form_keywords',
+    'theme' => 'simplemeta_meta_keywords',
+  );
+  return $info;
+}
+
+/**
+ * Meta title form element callback.
+ * 
+ * @param object $meta
+ *   meta object
+ * 
+ * @return array
+ *   form element
+ */
+function simplemeta_form_title($meta) {
+  $form = array(
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#maxlength' => 255,
+    '#default_value' => (isset($meta->data['title'])) ? $meta->data['title'] : '',
+  );
+  return $form;
+}
+
+/**
+ * Meta description form element callback.
+ * 
+ * @param object $meta
+ *   meta data
+ * 
+ * @return array
+ *   form element
+ */
+function simplemeta_form_description($meta) {
+  $form = array(
+    '#type' => 'textarea',
+    '#title' => t('Description'),
+    '#default_value' => (isset($meta->data['description'])) ? $meta->data['description'] : '',
+  );
+  return $form;
+}
+
+/**
+ * Meta keywords form element callback.
+ * 
+ * @param object $meta
+ *   meta object
+ * 
+ * @return array
+ *   form element
+ */
+function simplemeta_form_keywords($meta) {
+  $form = array(
+    '#type' => 'textfield',
+    '#title' => t('Keywords'),
+    '#maxlength' => 255,
+    '#default_value' => (isset($meta->data['keywords'])) ? $meta->data['keywords'] : '',
+  );
+  return $form;
+}
+
+/**
+ * Load meta data by path.
+ * 
+ * @param string $path
+ *   page's path to fetch meta data
+ *  
+ * @param string $language
+ *   language code
+ * 
+ * @return object|FALSE
+ *   object representing metadata or FALSE on failure
+ */
+function simplemeta_meta_load_by_path($path, $language = '') {
+  $result = db_select('simplemeta', 's')
+    ->fields('s')
+    ->condition('s.path', $path, '=')
+    ->condition('s.language', $language, '=')
+    ->execute();
+  if ($meta = $result->fetchObject()) {
+    $meta->data = unserialize($meta->data);
+    return $meta;
+  }
+  return FALSE;
+}
+
+/**
+ * Save meta data.
+ * 
+ * @param object $meta
+ *   meta data
+ */
+function simplemeta_meta_save($meta) {
+  $is_new = (!isset($meta->sid)) && (!simplemeta_meta_load_by_path($meta->path, $meta->language));
+  $meta->fit = _simplemeta_meta_calculate_fit($meta->path);
+  $record = clone($meta);
+  $record->data = serialize($record->data);
+  if ($is_new) {
+ //  	$result =  \Drupal::database()->merge('simplemeta')
+ //  	->key(array(''))
+ // ->fields($record)
+ // ->execute();
+    //$result = drupal_write_record('simplemeta', $record);
+    if (!empty($record->sid)) {
+      $meta->sid = $record->sid;
+    }
+   // module_invoke_all('simplemeta', $meta, 'insert');
+  }
+  else {
+
+//Using a merge query in a custom table.
+$result =  \Drupal::database()->merge('simplemeta')
+ ->key(array('sid'))
+ ->fields($record)
+ ->execute();
+
+    //$result = drupal_write_record('simplemeta', $record, array('sid'));
+    module_invoke_all('simplemeta', $meta, 'update');
+  }
+  return $result;
+}
+
+/**
+ * Calculate fit of the path i.e. how specific path is.
+ * 
+ * @param string $path
+ *   path to calculate fit
+ * 
+ * @return int
+ *   fit
+ * 
+ * @see _menu_router_build()
+ */
+function _simplemeta_meta_calculate_fit($path) {
+  $fit = 0;
+  $parts = explode('/', $path, MENU_MAX_PARTS);
+  $number_parts = count($parts);
+  $slashes = $number_parts - 1;
+  foreach ($parts as $k => $part) {
+    if ($part != '%') {
+      $fit |=  1 << ($slashes - $k);
+    }
+  }
+  return $fit;
+}

@@ -1,0 +1,8 @@
+simplemeta.admin:
+  route_name: simplemeta.admin
+  title: 'List'
+  base_route: system.admin_content
+simplemeta.admin.list:
+  route_name: simplemeta.admin
+  title: 'List'
+  parent_id: simplemeta.admin

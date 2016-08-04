@@ -1,0 +1,36 @@
+simplemeta.admin:
+  path: 'admin/content/simplemeta'
+  defaults:
+    _controller: '\Drupal\simplemeta\Controller\SimplemetaController::adminContent'
+    _title: 'SimpleMeta'
+  requirements:
+    _permission: 'administer simplemeta'
+simplemeta.add:
+  path: 'admin/content/simplemeta/add'
+  defaults:
+    #_form: '\Drupal\simplemeta\Form\SimplemetaForm'
+    _controller: '\Drupal\simplemeta\Controller\SimplemetaController::addContent'
+    _title: 'SimpleMeta'
+  requirements:
+    _permission: 'administer simplemeta'
+simplemeta.edit:
+  path: 'admin/content/simplemeta/{simplemeta_meta}/edit'
+  defaults:
+    _controller: '\Drupal\simplemeta\Controller\SimplemetaController::editContent'
+    _title: 'Edit SimpleMeta'
+  requirements:
+    _permission: 'administer simplemeta'
+simplemeta.delete:
+  path: 'admin/content/simplemeta/{simplemeta_meta}/delete'
+  defaults:
+    _controller: '\Drupal\simplemeta\Controller\SimplemetaController::deleteContent'
+    _title: 'Delete SimpleMeta'
+  requirements:
+    _permission: 'administer simplemeta'
+simplemeta.settings:
+  path: 'admin/content/simplemeta/settings'
+  defaults:
+    _controller: '\Drupal\simplemeta\Controller\SimplemetaController::settingsContent'
+    _title: 'Configure SimpleMeta'
+  requirements:
+    _permission: 'administer simplemeta'

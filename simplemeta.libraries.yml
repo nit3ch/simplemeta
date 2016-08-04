@@ -1,0 +1,9 @@
+simplemeta:
+  version: 1.x
+  css:
+    theme:
+      css/simplemeta.css: {}
+  js:
+    js/simplemeta.js: {}
+  dependencies:
+    - core/jquery
